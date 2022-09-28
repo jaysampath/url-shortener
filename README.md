@@ -4,15 +4,29 @@
 
 <p> When you hit the shortened URL, the database checks the shortcode and redirects you to the main URL. The URL shortener gets a long URL and returns a short URL.  </p>
 
+<h2> Test cases </h2>
+
+<ul>
+   <li> Server validates the URL </li>
+   <li> Shorten request returns the encoded short url </li>
+   <li> Server need not encode for duplicate destination urls </li>
+   <li> Server should redirect the user to destination url if a valid proxy is sent </li>
+   <li> Server should throw an exception if incorrect proxy is sent. </li>
+</ul>
+
+<p>Run the tests in  to check the functionality.</p>
 
 <h2> Database Model </h2>
-<p> https://whimsical.com/url-shortener-mongodb-QQup5WjtFqEUCU7AyjeJrM </p>
+<p> <b>urls</b> database has a single table <i>shortenUrls</i> which has encoded string ('proxy') as Id and destination url column </p>
+<p> https://whimsical.com/mysql-level1-Vus5kGib74B83hAhwVHSi1 </p>
 
-<h1> HLD Diagram </h2>
+<h2> HLD Diagram </h2>
+
 <p>  </p>
+
 <h2> Technologies Involved </h2>
 
-Java Spring boot, Spring Security, REST APIs, MongoDB, Docker
+Java Spring boot, REST APIs, MySQL, Docker
 
 
 <h2> Use Case</h2>
