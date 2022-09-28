@@ -14,7 +14,7 @@
    <li> Server should throw an exception if incorrect proxy is sent. </li>
 </ul>
 
-<p>Run the tests in  to check the functionality.</p>
+<p>Run the tests in <a href="https://github.com/jaysampath/url-shortener/tree/level1/src/test/java/com/project/url/shortener">test package</a> to check the functionality.</p>
 
 <h2> Database Model </h2>
 <p> <b>urls</b> database has a single table <i>shortenUrls</i> which has encoded string ('proxy') as Id and destination url column </p>
