@@ -20,6 +20,14 @@
 <p> <b>urls</b> database has a single table <i>shortenUrls</i> which has encoded string ('proxy') as Id and destination url column </p>
 <p> https://whimsical.com/mysql-level1-Vus5kGib74B83hAhwVHSi1 </p>
 
+<h2> Runbook </h2>
+
+<ol>
+ <li> cd docker</li>
+ <li> docker compose up </li>
+ <li> Run UrlShortenerApplication.java</li>
+</ol>
+
 <h2> HLD Diagram </h2>
 
 <p>  </p>
