@@ -6,9 +6,11 @@ import java.util.List;
 
 public interface ShortenUrlService {
 
-    ShortenUrl persistShortenUrl(String destinationUrl);
+    ShortenUrl persistShortenUrl(String destinationUrl, String userEmail);
 
     String getDestinationUrl(String proxy);
 
     List<ShortenUrl> getAllShortenUrls();
+
+    List<ShortenUrl> getAllShortenUrlsByUser(String email);
 }

@@ -6,15 +6,18 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "shortenUrls")
+@Table(name = DBFeilds.SHORT_URL_TABLE_NAME)
 public class ShortenUrl {
 
     @Id
-    @Column(name = "proxy")
+    @Column(name = DBFeilds.PROXY)
     private String proxy;
 
-    @Column(name = "destination")
+    @Column(name = DBFeilds.DESTINATION_URL)
     private String destinationUrl;
+
+    @Column(name = DBFeilds.USER_EMAIL)
+    private String userEmail;
 
     public String getProxy() {
         return proxy;
@@ -32,12 +35,20 @@ public class ShortenUrl {
         this.destinationUrl = destinationUrl;
     }
 
+    public String getUserEmail() {
+        return userEmail;
+    }
+
+    public void setUserEmail(String userEmail) {
+        this.userEmail = userEmail;
+    }
+
     @Override
     public String toString() {
         return "ShortenUrl{" +
-                "proxyUrl='" + proxy + '\'' +
+                "proxy='" + proxy + '\'' +
                 ", destinationUrl='" + destinationUrl + '\'' +
+                ", userEmail='" + userEmail + '\'' +
                 '}';
     }
-
 }

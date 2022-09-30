@@ -2,22 +2,26 @@
 
 <h2> Scope of the project </h2>
 
-<p> When you hit the shortened URL, the database checks the shortcode and redirects you to the main URL. The URL shortener gets a long URL and returns a short URL.  </p>
+<p> When you hit the shortened URL, the database checks the shortcode and redirects you to the main URL. The logged-in
+   user provides a long URL and returns a short URL. The logged-in user can see their own shorten urls. </p>
 
 <h2> Test cases </h2>
 
 <ul>
+   <li> Server authenticates the users using JWT Authentication</li>
    <li> Server validates the URL </li>
    <li> Shorten request returns the encoded short url </li>
    <li> Server need not encode for duplicate destination urls </li>
    <li> Server should redirect the user to destination url if a valid proxy is sent </li>
    <li> Server should throw an exception if incorrect proxy is sent. </li>
+   <li> logged-in user can see their own shorten urls. </li>
+   <li> Admin user can list all the users and shorten urls</li>
 </ul>
 
 <p>Run the tests in <a href="https://github.com/jaysampath/url-shortener/tree/level1/src/test/java/com/project/url/shortener">test package</a> to check the functionality.</p>
 
 <h2> Database Model </h2>
-<p> <b>urls</b> database has a single table <i>shortenUrls</i> which has encoded string ('proxy') as Id and destination url column </p>
+<p> <b>urls</b> database has a single table <i>shortUrls</i> which has encoded string ('proxy') as Id and destination url column </p>
 <p> https://whimsical.com/mysql-level1-Vus5kGib74B83hAhwVHSi1 </p>
 
 <h2> Runbook </h2>

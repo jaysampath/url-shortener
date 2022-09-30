@@ -30,7 +30,7 @@ public class ShortenUrlDaoImpl implements ShortenUrlDao{
     }
 
     @Override
-    public ShortenUrl persistShortenUrl(String destinationUrl) {
+    public ShortenUrl persistShortenUrl(String destinationUrl, String userEmail) {
          ShortenUrl savedUrl = this.getShortenUrl(destinationUrl);
          if(savedUrl != null){
              logger.info("A proxy corresponding to destinationUrl is already found - {}", savedUrl);
@@ -40,6 +40,7 @@ public class ShortenUrlDaoImpl implements ShortenUrlDao{
          ShortenUrl newUrl = new ShortenUrl();
          newUrl.setDestinationUrl(destinationUrl);
          newUrl.setProxy(shortenUrlUtils.getShortenUrl(destinationUrl));
+         newUrl.setUserEmail(userEmail);
 
          ShortenUrl persistedUrl = repository.save(newUrl);
          logger.info("Persisted url - {} ", persistedUrl);
@@ -55,5 +56,10 @@ public class ShortenUrlDaoImpl implements ShortenUrlDao{
     @Override
     public List<ShortenUrl> getAllShortenUrls() {
         return repository.findAll();
+    }
+
+    @Override
+    public List<ShortenUrl> getAllShortenUrlsByUser(String email) {
+        return repository.findAllByUserEmail(email);
     }
 }

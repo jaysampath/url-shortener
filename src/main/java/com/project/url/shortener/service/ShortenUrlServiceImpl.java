@@ -20,7 +20,7 @@ public class ShortenUrlServiceImpl implements ShortenUrlService {
     private UrlValidator urlValidator;
 
     @Override
-    public ShortenUrl persistShortenUrl(String destination) {
+    public ShortenUrl persistShortenUrl(String destination, String userEmail) {
 
         if(!validateSchema(destination)){
             throw new InvalidSchemaException("Invalid Schema. Allowed Schemas - http, https");
@@ -30,7 +30,7 @@ public class ShortenUrlServiceImpl implements ShortenUrlService {
             throw new InvalidUrlException("Invalid Url - "+ destination);
         }
 
-        return dao.persistShortenUrl(destination);
+        return dao.persistShortenUrl(destination, userEmail);
     }
 
     @Override
@@ -41,6 +41,11 @@ public class ShortenUrlServiceImpl implements ShortenUrlService {
     @Override
     public List<ShortenUrl> getAllShortenUrls() {
         return dao.getAllShortenUrls();
+    }
+
+    @Override
+    public List<ShortenUrl> getAllShortenUrlsByUser(String email) {
+        return dao.getAllShortenUrlsByUser(email);
     }
 
     private boolean validateSchema(String destination) {

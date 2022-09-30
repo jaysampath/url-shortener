@@ -1,4 +1,4 @@
-package com.project.url.shortener.exception;
+package com.project.url.shortener.commons.response;
 
 public class ExceptionResponse {
     int status;
