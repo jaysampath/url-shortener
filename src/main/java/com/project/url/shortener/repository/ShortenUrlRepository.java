@@ -12,4 +12,9 @@ public interface ShortenUrlRepository extends JpaRepository<ShortenUrl, String> 
     ShortenUrl findByDestinationUrl(String destinationUrl);
 
     List<ShortenUrl> findAllByUserEmail(String userEmail);
+
+    ShortenUrl findByDestinationUrlAndUserEmailAndIsAlias(String destinationUrl, String userEmail, Boolean isAlias);
+
+    void deleteAllByUserEmail(String userEmail);
+
 }

@@ -2,26 +2,36 @@ package com.project.url.shortener;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.project.url.shortener.commons.request.ShoretenUrlRequest;
+import com.project.url.shortener.dao.ShortenUrlDao;
+import com.project.url.shortener.dao.UserDao;
 import com.project.url.shortener.entity.ShortenUrl;
+import com.project.url.shortener.rest.request.LoginRequest;
+import com.project.url.shortener.rest.request.ShoretenUrlRequest;
+import com.project.url.shortener.rest.request.SignupRequest;
+import com.project.url.shortener.rest.response.SuccessfulLoginResponse;
 import com.project.url.shortener.service.ShortenUrlService;
-import org.junit.jupiter.api.Test;
+import com.project.url.shortener.service.UserService;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.Assert.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
+@RunWith(SpringRunner.class)
 @SpringBootTest
 @AutoConfigureMockMvc
 public class ShortenUrlControllerTest {
@@ -35,77 +45,268 @@ public class ShortenUrlControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    UserService userService;
+
+    @Autowired
+    UserDao userDao;
+
+    @Autowired
+    ShortenUrlDao shortenUrlDao;
+
+    private final String TEST_USER_EMAIL1 = "user1@test.com";
+    private final String TEST_USER_EMAIL2 = "user2@test.com";
+    private final String TEST_USER_PASSWORD1 = "password1";
+    private final String TEST_USER_PASSWORD2 = "password2";
+    private final String TEST_USER_USERNAME1 = "username1";
+    private final String TEST_USER_USERNAME2 = "username2";
+
+    private final String AUTHORIZATION_HEADER = "Authorization";
+    private final String BEARER = "Bearer ";
+
+    private final String DESTINATION_URL = "https://github.com/jaysampath";
+    private final String ALIAS = "my-github";
+
+    private String accessTokenUser1;
+    private String accessTokenUser2;
+
+    @Before
+    public void setup() throws Exception {
+        clearTestProxiesAndUsers();
+        registerTestUsers();
+        authenticateTestUsers();
+    }
+
+
+    private void registerTestUsers() throws Exception {
+        //register user1
+        SignupRequest signupRequest = new SignupRequest();
+        signupRequest.setEmail(TEST_USER_EMAIL1);
+        signupRequest.setPassword(TEST_USER_PASSWORD1);
+        signupRequest.setUsername(TEST_USER_USERNAME1);
+        mockMvc.perform(post(Endpoints.USER_REGISTER)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(signupRequest)))
+                .andExpect(status().isOk());
+
+        //register user 2
+        signupRequest.setEmail(TEST_USER_EMAIL2);
+        signupRequest.setPassword(TEST_USER_PASSWORD2);
+        signupRequest.setUsername(TEST_USER_USERNAME2);
+
+        mockMvc.perform(post(Endpoints.USER_REGISTER)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(signupRequest)))
+                .andExpect(status().isOk());
+    }
+
+    public void authenticateTestUsers() throws Exception {
+        LoginRequest loginRequest = new LoginRequest();
+        loginRequest.setEmail(TEST_USER_EMAIL1);
+        loginRequest.setPassword(TEST_USER_PASSWORD1);
+
+        MvcResult result = mockMvc.perform(post(Endpoints.USER_LOGIN)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(loginRequest)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String responseString = result.getResponse().getContentAsString();
+        SuccessfulLoginResponse loginResponse = objectMapper.readValue(responseString, SuccessfulLoginResponse.class);
+        assertNotNull(loginResponse);
+        assertNotNull(loginResponse.getAccessToken());
+        accessTokenUser1 = BEARER + loginResponse.getAccessToken();
+
+        loginRequest.setEmail(TEST_USER_EMAIL2);
+        loginRequest.setPassword(TEST_USER_PASSWORD2);
+
+        result = mockMvc.perform(post(Endpoints.USER_LOGIN)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(loginRequest)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        responseString = result.getResponse().getContentAsString();
+        loginResponse = objectMapper.readValue(responseString, SuccessfulLoginResponse.class);
+        assertNotNull(loginResponse);
+        assertNotNull(loginResponse.getAccessToken());
+        accessTokenUser2 = BEARER + loginResponse.getAccessToken();
+
+    }
 
     @Test
     public void testInvalidUrl() throws Exception {
         ShoretenUrlRequest requestBody = new ShoretenUrlRequest();
         requestBody.setDestinationUrl("https://some..com");
+        requestBody.setUserEmail(TEST_USER_EMAIL1);
+        requestBody.setAlias("");
+        requestBody.setIsAlias(false);
 
-        mockMvc.perform(post("/shorten")
+
+        mockMvc.perform(post(Endpoints.SHORTEN_URL)
                         .contentType(MediaType.APPLICATION_JSON)
+                        .header(AUTHORIZATION_HEADER, accessTokenUser1)
                         .content(objectMapper.writeValueAsString(requestBody)))
-                        .andExpect(status().isNotAcceptable());
+                .andExpect(status().isNotAcceptable());
     }
 
     @Test
     public void testInvalidSchema() throws Exception {
         ShoretenUrlRequest requestBody = new ShoretenUrlRequest();
         requestBody.setDestinationUrl("www://something.com");
+        requestBody.setUserEmail(TEST_USER_EMAIL1);
+        requestBody.setAlias("");
+        requestBody.setIsAlias(false);
 
-        mockMvc.perform(post("/shorten")
+
+        mockMvc.perform(post(Endpoints.SHORTEN_URL)
                         .contentType(MediaType.APPLICATION_JSON)
+                        .header(AUTHORIZATION_HEADER, accessTokenUser1)
                         .content(objectMapper.writeValueAsString(requestBody)))
                 .andExpect(status().isNotAcceptable());
     }
 
     @Test
-    public void testShortenUrl() throws Exception {
+    public void testShortenValidUrl() throws Exception {
         ShoretenUrlRequest requestBody = new ShoretenUrlRequest();
-        requestBody.setDestinationUrl("https://www.linkedin.com/in/jaya-sampath-kolisetty/");
+        requestBody.setDestinationUrl(DESTINATION_URL);
+        requestBody.setUserEmail(TEST_USER_EMAIL1);
+        requestBody.setAlias("");
+        requestBody.setIsAlias(false);
 
-        MvcResult result = mockMvc.perform(post("/shorten")
+        MvcResult result = mockMvc.perform(post(Endpoints.SHORTEN_URL)
+                        .header(AUTHORIZATION_HEADER, accessTokenUser1)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestBody)))
                 .andExpect(status().isOk())
                 .andReturn();
 
-       String responseString =  result.getResponse().getContentAsString();
-       ShortenUrl persistedUrl = objectMapper.readValue(responseString, ShortenUrl.class);
-       assertNotNull(persistedUrl);
-       assertNotNull(persistedUrl.getProxy());
-       assertEquals(8, persistedUrl.getProxy().length());
+        String responseString = result.getResponse().getContentAsString();
+        ShortenUrl persistedUrl = objectMapper.readValue(responseString, ShortenUrl.class);
+        assertNotNull(persistedUrl);
+        assertNotNull(persistedUrl.getProxy());
+        assertFalse(persistedUrl.getIsAlias());
+        assertEquals(8, persistedUrl.getProxy().length());
 
-       //duplicate entry
-         result = mockMvc.perform(post("/shorten")
+        //duplicate entry
+        result = mockMvc.perform(post(Endpoints.SHORTEN_URL)
                         .contentType(MediaType.APPLICATION_JSON)
+                        .header(AUTHORIZATION_HEADER, accessTokenUser1)
                         .content(objectMapper.writeValueAsString(requestBody)))
                 .andExpect(status().isOk())
                 .andReturn();
 
-        responseString =  result.getResponse().getContentAsString();
+        responseString = result.getResponse().getContentAsString();
         ShortenUrl newUrl = objectMapper.readValue(responseString, ShortenUrl.class);
         assertNotNull(newUrl);
         assertEquals(persistedUrl.getProxy(), newUrl.getProxy());
-        assertEquals(persistedUrl.getDestinationUrl(), persistedUrl.getDestinationUrl());
+        assertEquals(persistedUrl.getDestinationUrl(), newUrl.getDestinationUrl());
+        assertEquals(persistedUrl.getIsAlias(), newUrl.getIsAlias());
+        assertEquals(persistedUrl.getUserEmail(), newUrl.getUserEmail());
 
-
-        //Incorrect proxy
-        mockMvc.perform(get("/{id}", "wrong"))
-                .andExpect(status().isNotFound());
-
-        // list all test
-        result = mockMvc.perform(get("/list"))
+        // same destination url from different user
+        requestBody.setUserEmail(TEST_USER_EMAIL2);
+        result = mockMvc.perform(post(Endpoints.SHORTEN_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(AUTHORIZATION_HEADER, accessTokenUser2)
+                        .content(objectMapper.writeValueAsString(requestBody)))
                 .andExpect(status().isOk())
                 .andReturn();
-        responseString =  result.getResponse().getContentAsString();
-        List<ShortenUrl> urlList = objectMapper.readValue(responseString, new TypeReference<List<ShortenUrl>>(){});
-        assertNotNull(urlList);
+
+        responseString = result.getResponse().getContentAsString();
+        ShortenUrl duplicateDestination = objectMapper.readValue(responseString, ShortenUrl.class);
+        assertNotNull(duplicateDestination);
+        assertEquals(TEST_USER_EMAIL2, duplicateDestination.getUserEmail());
+        assertNotEquals(persistedUrl.getProxy(), duplicateDestination.getProxy());
+        assertEquals(persistedUrl.getDestinationUrl(), duplicateDestination.getDestinationUrl());
+        assertEquals(persistedUrl.getIsAlias(), duplicateDestination.getIsAlias());
+        assertNotEquals(persistedUrl.getUserEmail(), duplicateDestination.getUserEmail());
+
+
+        // list all user1 urls test
+        result = mockMvc.perform(get(Endpoints.LIST_USER_URLS)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(AUTHORIZATION_HEADER, accessTokenUser1)
+                        .param("userEmail", TEST_USER_EMAIL1)
+                        .content(objectMapper.writeValueAsString(requestBody)))
+                .andExpect(status().isOk())
+                .andReturn();
+        responseString = result.getResponse().getContentAsString();
+        List<ShortenUrl> urlList = objectMapper.readValue(responseString, new TypeReference<List<ShortenUrl>>() {
+        });
         assertEquals(1, urlList.size());
         assertEquals(persistedUrl.getProxy(), urlList.get(0).getProxy());
 
+        // list all user2 urls test
+        result = mockMvc.perform(get(Endpoints.LIST_USER_URLS)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(AUTHORIZATION_HEADER, accessTokenUser1)
+                        .param("userEmail", TEST_USER_EMAIL2)
+                        .content(objectMapper.writeValueAsString(requestBody)))
+                .andExpect(status().isOk())
+                .andReturn();
+        responseString = result.getResponse().getContentAsString();
+        urlList = objectMapper.readValue(responseString, new TypeReference<List<ShortenUrl>>() {
+        });
+        assertEquals(1, urlList.size());
+        assertEquals(duplicateDestination.getProxy(), urlList.get(0).getProxy());
 
-        //get destination url
-        String destination = service.getDestinationUrl(persistedUrl.getProxy());
-        assertEquals(requestBody.getDestinationUrl(), destination);
+    }
+
+    @Test
+    public void testAlias() throws Exception {
+        ShoretenUrlRequest requestBody = new ShoretenUrlRequest();
+        requestBody.setDestinationUrl(DESTINATION_URL);
+        requestBody.setUserEmail(TEST_USER_EMAIL1);
+        requestBody.setAlias(ALIAS);
+        requestBody.setIsAlias(true);
+
+        MvcResult result = mockMvc.perform(post(Endpoints.SHORTEN_URL)
+                        .header(AUTHORIZATION_HEADER, accessTokenUser1)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestBody)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String responseString = result.getResponse().getContentAsString();
+        ShortenUrl persistedUrl = objectMapper.readValue(responseString, ShortenUrl.class);
+        assertNotNull(persistedUrl);
+        assertNotNull(persistedUrl.getProxy());
+        assertTrue(persistedUrl.getIsAlias());
+        assertEquals(persistedUrl.getProxy(), ALIAS);
+
+        //duplicate entry
+        mockMvc.perform(post(Endpoints.SHORTEN_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(AUTHORIZATION_HEADER, accessTokenUser1)
+                        .content(objectMapper.writeValueAsString(requestBody)))
+                .andExpect(status().isNotAcceptable());
+
+        // validate already reported alias
+        mockMvc.perform(post(Endpoints.VALIDATE_ALIAS)
+                .header(AUTHORIZATION_HEADER, accessTokenUser1)
+                .param("alias", ALIAS))
+                .andExpect(status().isAlreadyReported());
+
+        // validate fresh alias
+        mockMvc.perform(post(Endpoints.VALIDATE_ALIAS)
+                        .header(AUTHORIZATION_HEADER, accessTokenUser1)
+                        .param("alias", "fresh"))
+                .andExpect(status().isOk());
+
+    }
+
+    @Test
+    public void testIncorrectProxy() throws Exception {
+        mockMvc.perform(get("/{id}", "wrong"))
+                .andExpect(status().isNotFound());
+    }
+
+    private void clearTestProxiesAndUsers(){
+        shortenUrlDao.deleteProxiesByUserEmail(TEST_USER_EMAIL1);
+        shortenUrlDao.deleteProxiesByUserEmail(TEST_USER_EMAIL2);
+
+        userDao.deleteUser(TEST_USER_EMAIL1);
+        userDao.deleteUser(TEST_USER_EMAIL2);
     }
 }

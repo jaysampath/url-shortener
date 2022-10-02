@@ -8,11 +8,15 @@ public interface ShortenUrlDao {
 
     ShortenUrl getShortenUrl(String destinationUrl);
 
-    ShortenUrl persistShortenUrl(String destination, String userEmail);
+    ShortenUrl persistShortenUrl(String destination, String userEmail, Boolean isAlias, String alias);
 
     String getDestinationUrl(String proxy);
 
     List<ShortenUrl> getAllShortenUrls();
 
     List<ShortenUrl> getAllShortenUrlsByUser(String email);
+
+    boolean checkIfAliasAlreadyTaken(String alias);
+
+    void deleteProxiesByUserEmail(String userEmail);
 }

@@ -19,6 +19,9 @@ public class ShortenUrl {
     @Column(name = DBFeilds.USER_EMAIL)
     private String userEmail;
 
+    @Column(name = DBFeilds.IS_ALIAS)
+    private Boolean isAlias;
+
     public String getProxy() {
         return proxy;
     }
@@ -41,6 +44,14 @@ public class ShortenUrl {
 
     public void setUserEmail(String userEmail) {
         this.userEmail = userEmail;
+    }
+
+    public Boolean getIsAlias() {
+        return isAlias;
+    }
+
+    public void setIsAlias(Boolean alias) {
+        isAlias = alias;
     }
 
     @Override

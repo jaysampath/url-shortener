@@ -1,4 +1,4 @@
-package com.project.url.shortener.commons.request;
+package com.project.url.shortener.rest.request;
 
 public class LoginRequest {
 

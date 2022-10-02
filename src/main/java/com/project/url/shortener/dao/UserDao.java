@@ -15,5 +15,6 @@ public interface UserDao {
     Boolean isUserExists(String email);
 
     void updateUserPassword(User user);
+    void deleteUser(String userEmail);
 
 }

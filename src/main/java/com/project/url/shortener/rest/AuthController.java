@@ -1,13 +1,15 @@
 package com.project.url.shortener.rest;
 
-import com.project.url.shortener.commons.request.LoginRequest;
-import com.project.url.shortener.commons.request.UpdatePasswordRequest;
-import com.project.url.shortener.commons.response.SuccessfulLoginResponse;
+import com.project.url.shortener.rest.request.LoginRequest;
+import com.project.url.shortener.rest.request.SignupRequest;
+import com.project.url.shortener.rest.request.UpdatePasswordRequest;
+import com.project.url.shortener.rest.response.SuccessfulLoginResponse;
 import com.project.url.shortener.entity.User;
 import com.project.url.shortener.exception.JWTException;
 import com.project.url.shortener.exception.UserAlreadyExistsException;
 import com.project.url.shortener.exception.UserNotFoundException;
-import com.project.url.shortener.service.JwtTokenProvider;
+import com.project.url.shortener.rest.validation.UserInputValidator;
+import com.project.url.shortener.service.JwtTokenService;
 import com.project.url.shortener.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,14 +21,14 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/user")
-public class UserController {
+@RequestMapping("/auth")
+public class AuthController {
 
     @Autowired
     private UserService userService;
 
     @Autowired
-    private JwtTokenProvider tokenProvider;
+    private JwtTokenService tokenProvider;
 
     @Autowired
     private AuthenticationManager authenticationManager;
@@ -34,28 +36,34 @@ public class UserController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @ResponseStatus(HttpStatus.CREATED)
-    @PostMapping("/register")
-    public SuccessfulLoginResponse userRegister(@RequestBody User user) {
+    @Autowired
+    private UserInputValidator inputValidator;
 
-        if (userService.isUserExists(user.getEmail())) {
-            throw new UserAlreadyExistsException(String.format("Email - %s is already registered. Please login with the same.", user.getEmail()));
+    @PostMapping("/register")
+    public SuccessfulLoginResponse userRegister(@RequestBody SignupRequest signupRequest) {
+
+        inputValidator.validateSignUpRequest(signupRequest);
+
+        if (userService.isUserExists(signupRequest.getEmail())) {
+            throw new UserAlreadyExistsException(String.format("Email - %s is already registered. Please login with the same.", signupRequest.getEmail()));
         }
 
-        String actualPassword = user.getPassword();
+        String actualPassword = signupRequest.getPassword();
 
         //encrypt the password
-        user.setPassword(passwordEncoder.encode(actualPassword));
-        userService.saveUser(user);
+        signupRequest.setPassword(passwordEncoder.encode(actualPassword));
+        userService.saveUser(mapSignupRequestToUser(signupRequest));
 
-        String token = authenticateAndGetToken(user.getEmail(), actualPassword);
+        String token = authenticateAndGetToken(signupRequest.getEmail(), actualPassword);
 
-        return new SuccessfulLoginResponse(user.getEmail(), token, user.getUsername(),
-                StringUtils.hasText(user.getPrettyName()) ? user.getPrettyName() : user.getUsername());
+        return new SuccessfulLoginResponse(signupRequest.getEmail(), token, signupRequest.getUsername(),
+                StringUtils.hasText(signupRequest.getPrettyName()) ? signupRequest.getPrettyName() : signupRequest.getUsername());
     }
 
     @PostMapping("/login")
     public SuccessfulLoginResponse authenticateUser(@RequestBody LoginRequest loginRequest) {
+
+        inputValidator.validateLoginRequest(loginRequest);
 
         User user = userService.getUserByEmail(loginRequest.getEmail());
         if (user == null) {
@@ -70,6 +78,8 @@ public class UserController {
 
     @PostMapping("/update")
     public SuccessfulLoginResponse updateUserPassword(@RequestBody UpdatePasswordRequest updatePasswordRequest) {
+
+        inputValidator.validateUpdatePasswordRequest(updatePasswordRequest);
 
         User user = userService.getUserByEmail(updatePasswordRequest.getEmail());
         if (user == null) {
@@ -99,5 +109,16 @@ public class UserController {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(email, password));
         return tokenProvider.generateToken(authentication);
+    }
+
+    private User mapSignupRequestToUser(SignupRequest signupRequest) {
+        User user = new User();
+        user.setEmail(signupRequest.getEmail());
+        user.setPassword(signupRequest.getPassword());
+        user.setUsername(signupRequest.getUsername());
+        user.setPrettyName( StringUtils.hasText(signupRequest.getPrettyName())
+                ? signupRequest.getPrettyName() : signupRequest.getUsername() );
+        user.setRole("USER");
+        return user;
     }
 }

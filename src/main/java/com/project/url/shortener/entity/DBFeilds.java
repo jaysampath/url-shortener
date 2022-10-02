@@ -15,4 +15,5 @@ public class DBFeilds {
     public static final String DESTINATION_URL = "destinationUrl";
 
     public static final String USER_EMAIL = "userEmail" ;
+    public static final String IS_ALIAS = "isAlias";
 }

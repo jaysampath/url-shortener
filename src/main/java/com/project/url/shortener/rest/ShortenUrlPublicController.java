@@ -18,7 +18,7 @@ public class ShortenUrlPublicController {
     private ShortenUrlService urlService;
 
     @GetMapping("/{proxy}")
-    public ResponseEntity getDestinationUrl(HttpServletResponse response, @PathVariable String proxy) throws IOException {
+    public void getDestinationUrl(HttpServletResponse response, @PathVariable String proxy) throws IOException {
         String destinationUrl = urlService.getDestinationUrl(proxy);
 
         if (destinationUrl == null) {
@@ -26,6 +26,5 @@ public class ShortenUrlPublicController {
         }
 
         response.sendRedirect(destinationUrl);
-        return ResponseEntity.ok().build();
     }
 }

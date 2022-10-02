@@ -1,4 +1,4 @@
-package com.project.url.shortener.commons.response;
+package com.project.url.shortener.rest.response;
 
 public class SuccessfulLoginResponse {
 

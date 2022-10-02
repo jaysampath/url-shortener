@@ -4,10 +4,12 @@ import com.project.url.shortener.entity.User;
 import com.project.url.shortener.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Component
+@Transactional
 public class UserDaoImpl implements UserDao{
 
     @Autowired
@@ -37,5 +39,10 @@ public class UserDaoImpl implements UserDao{
     @Override
     public void updateUserPassword(User user) {
         repository.save(user);
+    }
+
+    @Override
+    public void deleteUser(String userEmail) {
+        repository.deleteByEmail(userEmail);
     }
 }

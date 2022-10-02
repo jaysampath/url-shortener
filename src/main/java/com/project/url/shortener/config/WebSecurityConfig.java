@@ -1,7 +1,7 @@
 package com.project.url.shortener.config;
 
 import com.project.url.shortener.commons.auth.UserDetailsServiceImpl;
-import com.project.url.shortener.commons.AppAuthenticationFilter;
+import com.project.url.shortener.commons.TokenAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,7 +21,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
-public class AppSecurityConfig extends WebSecurityConfigurerAdapter {
+public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private UserDetailsServiceImpl userDetailsService;
@@ -38,8 +38,8 @@ public class AppSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    public AppAuthenticationFilter jwtAuthenticationFilter() {
-        return new AppAuthenticationFilter();
+    public TokenAuthenticationFilter jwtAuthenticationFilter() {
+        return new TokenAuthenticationFilter();
     }
 
     @Override
@@ -60,9 +60,9 @@ public class AppSecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .authorizeRequests()
                 .antMatchers("/admin/**").hasAuthority("ADMIN")
-                .antMatchers("/url/**").hasAuthority("USER")
+                .antMatchers("/user/**").hasAuthority("USER")
                 .antMatchers(HttpMethod.GET,"/**").permitAll()
-                .antMatchers("/user/**").permitAll()
+                .antMatchers("/auth/**").permitAll()
                 .anyRequest()
                 .authenticated();
 

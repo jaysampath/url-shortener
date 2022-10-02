@@ -9,15 +9,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import java.time.ZonedDateTime;
 import java.util.Date;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Component
-public class JwtTokenProvider {
+public class JwtTokenService {
 
-    private static final Logger logger = LoggerFactory.getLogger(JwtTokenProvider.class);
+    private static final Logger logger = LoggerFactory.getLogger(JwtTokenService.class);
 
     @Value("${jwt.secret}")
     private String jwtSigningKey;
@@ -30,22 +34,30 @@ public class JwtTokenProvider {
 
         byte[] signingKey = jwtSigningKey.getBytes();
 
-        return Jwts.
-                builder()
-                .setSubject(userDetails.getEmail())
-                .claim(DBFeilds.USERNAME, userDetails.getUsername())
+        List<String> roles = userDetails.getAuthorities()
+                .stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
+
+        return Jwts.builder()
+                .setHeaderParam("type","JWT")
                 .signWith(Keys.hmacShaKeyFor(signingKey), SignatureAlgorithm.HS512)
                 .setExpiration(Date.from(ZonedDateTime.now().plusMinutes(expirationTime).toInstant()))
+                .setIssuedAt(Date.from(ZonedDateTime.now().toInstant()))
+                .setId(UUID.randomUUID().toString())
+                .setSubject(userDetails.getEmail())
+                .claim(DBFeilds.USERNAME, userDetails.getUsername())
+                .claim("roles", roles)
                 .compact();
     }
 
     public String getUserEmailFromJWT(String token) {
-        Claims claims = Jwts.parser()
+        Claims body = Jwts.parser()
                 .setSigningKey(jwtSigningKey.getBytes())
                 .parseClaimsJws(token)
                 .getBody();
 
-        return claims.getSubject();
+        return body.getSubject();
     }
 
     public boolean validateToken(String authToken) {
@@ -54,15 +66,19 @@ public class JwtTokenProvider {
             return true;
         } catch (SignatureException ex) {
             logger.error("Invalid JWT signature");
+            throw new JwtException("Invalid JWT signature");
         } catch (MalformedJwtException ex) {
             logger.error("Invalid JWT token");
+            throw new JwtException("Invalid JWT token");
         } catch (ExpiredJwtException ex) {
             logger.error("Expired JWT token");
+            throw new JwtException("Expired JWT token. Please login again");
         } catch (UnsupportedJwtException ex) {
             logger.error("Unsupported JWT token");
+            throw new JwtException("Unsupported JWT token");
         } catch (IllegalArgumentException ex) {
             logger.error("JWT claims string is empty.");
+            throw new JwtException("JWT claims string is empty.");
         }
-        return false;
     }
 }

@@ -7,13 +7,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 
 
 @Component
-public class ShortenUrlDaoImpl implements ShortenUrlDao{
+@Transactional
+public class ShortenUrlDaoImpl implements ShortenUrlDao {
 
     Logger logger = LoggerFactory.getLogger(ShortenUrlDaoImpl.class);
 
@@ -23,6 +26,8 @@ public class ShortenUrlDaoImpl implements ShortenUrlDao{
     @Autowired
     ShortenUrlUtils shortenUrlUtils;
 
+    private Random random = new Random();
+
 
     @Override
     public ShortenUrl getShortenUrl(String destinationUrl) {
@@ -30,21 +35,37 @@ public class ShortenUrlDaoImpl implements ShortenUrlDao{
     }
 
     @Override
-    public ShortenUrl persistShortenUrl(String destinationUrl, String userEmail) {
-         ShortenUrl savedUrl = this.getShortenUrl(destinationUrl);
-         if(savedUrl != null){
-             logger.info("A proxy corresponding to destinationUrl is already found - {}", savedUrl);
-             return savedUrl;
-         }
+    public synchronized ShortenUrl persistShortenUrl(String destinationUrl, String userEmail, Boolean isAlias, String alias) {
 
-         ShortenUrl newUrl = new ShortenUrl();
-         newUrl.setDestinationUrl(destinationUrl);
-         newUrl.setProxy(shortenUrlUtils.getShortenUrl(destinationUrl));
-         newUrl.setUserEmail(userEmail);
+        ShortenUrl savedUrl = repository.findByDestinationUrlAndUserEmailAndIsAlias(destinationUrl, userEmail, false);
 
-         ShortenUrl persistedUrl = repository.save(newUrl);
-         logger.info("Persisted url - {} ", persistedUrl);
-         return persistedUrl;
+        if (savedUrl != null) {
+            logger.info("A proxy corresponding to the given destinationUrl is already found - {}", savedUrl);
+            return savedUrl;
+        }
+
+        ShortenUrl newUrl = new ShortenUrl();
+        newUrl.setDestinationUrl(destinationUrl);
+
+        //what if two users want to shorten same url ??
+        if (isAlias) {
+            newUrl.setProxy(alias);
+            newUrl.setIsAlias(true);
+        } else {
+            newUrl.setProxy(shortenUrlUtils.getShortenUrl(destinationUrl + random.nextInt(50)));
+            newUrl.setIsAlias(false);
+        }
+
+        newUrl.setUserEmail(userEmail);
+
+        ShortenUrl persistedUrl;
+        try {
+            persistedUrl = repository.save(newUrl);
+            logger.info("Persisted url - {} ", persistedUrl);
+        } catch (Exception e) {
+            throw new RuntimeException("Something went wrong while persisting!, please try again after sometime");
+        }
+        return persistedUrl;
     }
 
     @Override
@@ -62,4 +83,16 @@ public class ShortenUrlDaoImpl implements ShortenUrlDao{
     public List<ShortenUrl> getAllShortenUrlsByUser(String email) {
         return repository.findAllByUserEmail(email);
     }
+
+    @Override
+    public boolean checkIfAliasAlreadyTaken(String alias) {
+        return repository.findById(alias).isPresent();
+    }
+
+    @Override
+    public void deleteProxiesByUserEmail(String userEmail) {
+        repository.deleteAllByUserEmail(userEmail);
+    }
+
+
 }
