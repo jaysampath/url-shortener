@@ -8,6 +8,7 @@ import com.project.url.shortener.entity.ShortenUrl;
 import com.project.url.shortener.rest.request.LoginRequest;
 import com.project.url.shortener.rest.request.ShoretenUrlRequest;
 import com.project.url.shortener.rest.request.SignupRequest;
+import com.project.url.shortener.rest.response.ShortenUrlResponse;
 import com.project.url.shortener.rest.response.SuccessfulLoginResponse;
 import com.project.url.shortener.service.ShortenUrlService;
 import com.project.url.shortener.service.UserService;
@@ -66,6 +67,8 @@ public class ShortenUrlControllerTest {
 
     private final String DESTINATION_URL = "https://github.com/jaysampath";
     private final String ALIAS = "my-github";
+
+    private final String SERVER_ADDRESS = "http://localhost:8080/";
 
     private String accessTokenUser1;
     private String accessTokenUser2;
@@ -182,11 +185,11 @@ public class ShortenUrlControllerTest {
                 .andReturn();
 
         String responseString = result.getResponse().getContentAsString();
-        ShortenUrl persistedUrl = objectMapper.readValue(responseString, ShortenUrl.class);
+        ShortenUrlResponse persistedUrl = objectMapper.readValue(responseString, ShortenUrlResponse.class);
         assertNotNull(persistedUrl);
         assertNotNull(persistedUrl.getProxy());
         assertFalse(persistedUrl.getIsAlias());
-        assertEquals(8, persistedUrl.getProxy().length());
+        assertEquals(SERVER_ADDRESS.length() + 8, persistedUrl.getProxy().length());
 
         //duplicate entry
         result = mockMvc.perform(post(Endpoints.SHORTEN_URL)
@@ -197,7 +200,7 @@ public class ShortenUrlControllerTest {
                 .andReturn();
 
         responseString = result.getResponse().getContentAsString();
-        ShortenUrl newUrl = objectMapper.readValue(responseString, ShortenUrl.class);
+        ShortenUrlResponse newUrl = objectMapper.readValue(responseString, ShortenUrlResponse.class);
         assertNotNull(newUrl);
         assertEquals(persistedUrl.getProxy(), newUrl.getProxy());
         assertEquals(persistedUrl.getDestinationUrl(), newUrl.getDestinationUrl());
@@ -214,7 +217,7 @@ public class ShortenUrlControllerTest {
                 .andReturn();
 
         responseString = result.getResponse().getContentAsString();
-        ShortenUrl duplicateDestination = objectMapper.readValue(responseString, ShortenUrl.class);
+        ShortenUrlResponse duplicateDestination = objectMapper.readValue(responseString, ShortenUrlResponse.class);
         assertNotNull(duplicateDestination);
         assertEquals(TEST_USER_EMAIL2, duplicateDestination.getUserEmail());
         assertNotEquals(persistedUrl.getProxy(), duplicateDestination.getProxy());
@@ -232,7 +235,7 @@ public class ShortenUrlControllerTest {
                 .andExpect(status().isOk())
                 .andReturn();
         responseString = result.getResponse().getContentAsString();
-        List<ShortenUrl> urlList = objectMapper.readValue(responseString, new TypeReference<List<ShortenUrl>>() {
+        List<ShortenUrlResponse> urlList = objectMapper.readValue(responseString, new TypeReference<List<ShortenUrlResponse>>() {
         });
         assertEquals(1, urlList.size());
         assertEquals(persistedUrl.getProxy(), urlList.get(0).getProxy());
@@ -246,7 +249,7 @@ public class ShortenUrlControllerTest {
                 .andExpect(status().isOk())
                 .andReturn();
         responseString = result.getResponse().getContentAsString();
-        urlList = objectMapper.readValue(responseString, new TypeReference<List<ShortenUrl>>() {
+        urlList = objectMapper.readValue(responseString, new TypeReference<List<ShortenUrlResponse>>() {
         });
         assertEquals(1, urlList.size());
         assertEquals(duplicateDestination.getProxy(), urlList.get(0).getProxy());
@@ -269,11 +272,11 @@ public class ShortenUrlControllerTest {
                 .andReturn();
 
         String responseString = result.getResponse().getContentAsString();
-        ShortenUrl persistedUrl = objectMapper.readValue(responseString, ShortenUrl.class);
+        ShortenUrlResponse persistedUrl = objectMapper.readValue(responseString, ShortenUrlResponse.class);
         assertNotNull(persistedUrl);
         assertNotNull(persistedUrl.getProxy());
         assertTrue(persistedUrl.getIsAlias());
-        assertEquals(persistedUrl.getProxy(), ALIAS);
+        assertEquals(persistedUrl.getProxy(), SERVER_ADDRESS + ALIAS);
 
         //duplicate entry
         mockMvc.perform(post(Endpoints.SHORTEN_URL)
