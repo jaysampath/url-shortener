@@ -1,9 +1,10 @@
-<h1> URL Shortener </h1>
+<h1> URL Shortener (Level 2)</h1>
 
 <h2> Scope of the project </h2>
 
-<p> When you hit the shortened URL, the database checks the shortcode and redirects you to the main URL. The logged-in
-   user provides a long URL and returns a short URL. The logged-in user can see their own shorten urls. </p>
+<p> User creates an account in the app. The logged-in user provides a long URL and returns a short URL. The user can provide their own alias for the long url, 
+the server accepts the alias if it's not already taken by someone else. When you hit the shortened URL, the database checks the shortcode and redirects you to the main URL. 
+The user can see their own shorten urls. </p>
 
 <h2> Test cases </h2>
 
@@ -11,21 +12,22 @@
    <li> Server authenticates the users using JWT Authentication</li>
    <li> Server validates the URL </li>
    <li> Shorten request returns the encoded short url </li>
-   <li> Server need not encode for duplicate destination urls </li>
-   <li> Server should redirect the user to destination url if a valid proxy is sent </li>
-   <li> Server should throw an exception if incorrect proxy is sent. </li>
+   <li> Server need not encode the duplicate destination urls for the same user </li>
+   <li> User can provide their own alias for the long url, the server only accepts the alias if it's not already taken by someone else</li>
+   <li> Server should redirect the user to destination url if a valid proxy/alias is sent </li>
+   <li> Server should throw an exception if incorrect proxy/alias is sent. </li>
    <li> logged-in user can see their own shorten urls. </li>
-   <li> Admin user can list all the users and shorten urls</li>
+   <li> Admin user can list all the users and shorten urls and cannot access user specific endpoints</li>
 </ul>
 
-<p>Run the tests in <a href="https://github.com/jaysampath/url-shortener/tree/level1/src/test/java/com/project/url/shortener">test package</a> to check the functionality.</p>
+<p> After starting the application, run the tests in <a href="https://github.com/jaysampath/url-shortener/tree/level2/src/test/java/com/project/url/shortener">
+    test package</a> to check the functionality.</p>
 
 <h2> Database Model </h2>
-<p> <b>urls</b> database has a single table <i>shortUrls</i> which has encoded string ('proxy') as Id and destination url column </p>
-<p> https://whimsical.com/mysql-level1-Vus5kGib74B83hAhwVHSi1 </p>
+<p> Two tables are used, "user" for storing user specific information. "shortUrl" for storing encoded string/alias corresponding to long urls. </p>
+<p> Find the entity-relationship diagram <a href="https://whimsical.com/mysql-leve2-4mqNfuX8S7BtpsUMNqvLo4" target="_blank">here.</a> </p>
 
 <h2> Runbook </h2>
-
 <ol>
  <li> cd docker</li>
  <li> docker compose up </li>
@@ -38,7 +40,7 @@
 
 <h2> Technologies Involved </h2>
 
-Java Spring boot, REST APIs, MySQL, Docker
+Java, Spring boot, Spring Security, JWT, REST APIs, MySQL, Docker
 
 
 <h2> Use Case</h2>
