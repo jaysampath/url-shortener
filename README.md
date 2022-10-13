@@ -2,17 +2,45 @@
 
 <h2> Scope of the project </h2>
 
-<p> When you hit the shortened URL, the database checks the shortcode and redirects you to the main URL. The URL shortener gets a long URL and returns a short URL.  </p>
+<p> User creates an account in the app. The logged-in user provides a long URL and returns a short URL. The user can provide their own alias for the long url, 
+the server accepts the alias if it's not already taken by someone else. When you hit the shortened URL, the database checks the shortcode and redirects you to the main URL. 
+The user can see their own shorten urls. </p>
 
+<h2> Test cases </h2>
+
+<ul>
+   <li> Server authenticates the users using JWT Authentication</li>
+   <li> Server validates the URL </li>
+   <li> Shorten request returns the encoded short url </li>
+   <li> Server need not encode the duplicate destination urls for the same user </li>
+   <li> User can provide their own alias for the long url, the server only accepts the alias if it's not already taken by someone else</li>
+   <li> Server should redirect the user to destination url if a valid proxy/alias is sent </li>
+   <li> Server should throw an exception if incorrect proxy/alias is sent. </li>
+   <li> logged-in user can see their own shorten urls. </li>
+   <li> Admin user can list all the users and shorten urls and cannot access user specific endpoints</li>
+   <li> Server checks the shortened url is password protected or not. Returns a html page asking for password and then validates it. </li>
+   <li> Server checks the expiration time of shortened url, returns a json saying expired. </li>
+</ul>
+
+<p> After starting the application, run the tests in <a href="https://github.com/jaysampath/url-shortener/tree/level2/src/test/java/com/project/url/shortener">
+    test package</a> to check the functionality.</p>
 
 <h2> Database Model </h2>
-<p> https://whimsical.com/url-shortener-mongodb-QQup5WjtFqEUCU7AyjeJrM </p>
+<p> Two tables are used, "user" for storing user specific information. "shortUrl" for storing encoded string/alias corresponding to long urls. </p>
+<p> Find the entity-relationship diagram <a href="https://whimsical.com/mysql-level3-4mqNfuX8S7BtpsUMNqvLo4" target="_blank">here.</a> </p>
 
-<h1> HLD Diagram </h2>
+<h2> Runbook </h2>
+<ol>
+ <li> cd docker</li>
+ <li> docker compose up </li>
+ <li> Run UrlShortenerApplication.java</li>
+</ol>
+
 <p>  </p>
+
 <h2> Technologies Involved </h2>
 
-Java Spring boot, Spring Security, REST APIs, MongoDB, Docker
+Java, Spring boot, Spring Security, JWT, REST APIs, MySQL, Docker
 
 
 <h2> Use Case</h2>
