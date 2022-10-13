@@ -1,4 +1,4 @@
-<h1> URL Shortener (Level 2)</h1>
+<h1> URL Shortener </h1>
 
 <h2> Scope of the project </h2>
 
@@ -18,6 +18,8 @@ The user can see their own shorten urls. </p>
    <li> Server should throw an exception if incorrect proxy/alias is sent. </li>
    <li> logged-in user can see their own shorten urls. </li>
    <li> Admin user can list all the users and shorten urls and cannot access user specific endpoints</li>
+   <li> Server checks the shortened url is password protected or not. Returns a html page asking for password and then validates it. </li>
+   <li> Server checks the expiration time of shortened url, returns a json saying expired. </li>
 </ul>
 
 <p> After starting the application, run the tests in <a href="https://github.com/jaysampath/url-shortener/tree/level2/src/test/java/com/project/url/shortener">
@@ -25,7 +27,7 @@ The user can see their own shorten urls. </p>
 
 <h2> Database Model </h2>
 <p> Two tables are used, "user" for storing user specific information. "shortUrl" for storing encoded string/alias corresponding to long urls. </p>
-<p> Find the entity-relationship diagram <a href="https://whimsical.com/mysql-leve2-4mqNfuX8S7BtpsUMNqvLo4" target="_blank">here.</a> </p>
+<p> Find the entity-relationship diagram <a href="https://whimsical.com/mysql-level3-4mqNfuX8S7BtpsUMNqvLo4" target="_blank">here.</a> </p>
 
 <h2> Runbook </h2>
 <ol>
@@ -33,8 +35,6 @@ The user can see their own shorten urls. </p>
  <li> docker compose up </li>
  <li> Run UrlShortenerApplication.java</li>
 </ol>
-
-<h2> HLD Diagram </h2>
 
 <p>  </p>
 
